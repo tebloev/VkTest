@@ -1,0 +1,28 @@
+package com.example.vktest;
+
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
+public class OnlineCheck {
+	
+	private static OnlineCheck instance; 
+	public boolean isOnline(Context context)
+	{
+		ConnectivityManager cm =
+		(ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo netInfo = cm.getActiveNetworkInfo();
+		if (netInfo != null && netInfo.isConnectedOrConnecting())
+			{
+				return true;
+			}
+			return false;
+	}
+	
+	public static OnlineCheck getInstance(){ 
+		  if (null == instance){ 
+			  instance = new OnlineCheck(); 
+		  } 
+		  return instance; 
+		 }
+}

@@ -28,11 +28,13 @@ public class MainActivity extends Activity {
 	String url = "https://oauth.vk.com/authorize?client_id=4569803&redirect_uri=" +
 				  REDIRECT + "&scope=12&display=mobile&response_type=token";
 	WebView mWebView;
+	OnlineCheck mCheck;
 	String token, user_id;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mCheck = OnlineCheck.getInstance();
         mWebView = (WebView)findViewById(R.id.webView);
         mWebView.setWebViewClient(new MyWebViewClient());
         mWebView.loadUrl(url);
@@ -43,8 +45,11 @@ public class MainActivity extends Activity {
 	    @Override
 	    public boolean shouldOverrideUrlLoading(WebView view, String url) 
 	    {
-	    	view.loadUrl(url);
-	    	parseUrl(url);	        
+	        if(mCheck.isOnline(MainActivity.this))
+	        {
+		    	view.loadUrl(url);
+		    	parseUrl(url);	     
+	        }
 	        return true;
 	    }
 	}
@@ -122,15 +127,13 @@ public class MainActivity extends Activity {
 				data.add(new Item(name, url));
 			}
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		ImagesCache ms = ImagesCache.getInstance(data);
 		ListView mListView = (ListView)findViewById(R.id.listView);
-		mListView.setAdapter(new FriendsAdapter(MainActivity.this, data));	
+		FriendsAdapter mAdapter = new FriendsAdapter(MainActivity.this, data);
+		mListView.setAdapter(mAdapter);	
+		mAdapter.notifyDataSetChanged();		
 	}
-	
-	
 	
 	private void parseUrl(String mUrl) {
 	    try {
@@ -139,12 +142,15 @@ public class MainActivity extends Activity {
 	        if (mUrl.toString().contains(REDIRECT))
 	        {
 	        	tokenParser(mUrl);
+	        	
 	        	mWebView.loadUrl(mUrl);
 	        	mWebView.setVisibility(WebView.GONE);
 	        	Toast.makeText(this, "Вы успешно авторизовались!", Toast.LENGTH_LONG).show();     
-	        	new GetFriendsTask().execute("https://api.vk.com/method/friends.get?" + user_id +
+	            if(mCheck.isOnline(this))
+	            {
+	            	new GetFriendsTask().execute("https://api.vk.com/method/friends.get?" + user_id +
 	        			"&client_id=4569803&v=5.25&order=random&fields=photo_100&name_case=nom&access_token=" + token);
-	        	
+	            }	        	
 	        }
 	    } catch (Exception e) {
 	        e.printStackTrace();	    
